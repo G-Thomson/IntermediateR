@@ -8,6 +8,8 @@ Description: Just data sets for exercises
 License: CC0
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/G-Thomson/IntermediateR
+BugReports: https://github.com/G-Thomson/IntermediateR/issues
 Imports:
   Tidyverse
 
