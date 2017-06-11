@@ -11,5 +11,5 @@ LazyData: true
 URL: https://github.com/G-Thomson/IntermediateR
 BugReports: https://github.com/G-Thomson/IntermediateR/issues
 Imports:
-  Tidyverse
+  tidyverse
 
