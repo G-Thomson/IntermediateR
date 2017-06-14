@@ -1,0 +1,132 @@
+---
+title: "Data Manipulation and Visualisation"
+author: "Geoffrey Thomson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Manipulation and Visualisation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+## Getting set up
+
+#### Data
+
+This notebook contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this worksop can be found in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
+ 
+```{r, message=FALSE, warning=FALSE}
+library(IntermediateR)
+```
+
+#### The Tidyverse
+
+This workshop aims to demonstrate how when data is stored in a ['tidy'](http://vita.had.co.nz/papers/tidy-data.pdf) format it is relatively easy to interrogate it. One way to achieve this is through the use of the *tidyverse* suite of tools, a group of ~20 packages which provide tools useful in all stages of data analysis. This workshop will focus on the *dplyr* and *ggplot2* packages which, along with *tidyr*, form the core of the *tidyverse*. 
+
+The *tidyverse* package loads the most commonly used *tidyverse* packages and was installed automatically, if you didn't have it already, when you installed the *IntermediateR* package. It needs to be loaded too.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+## Tidy data
+
+Tidy data is simple the consistent structuring of data such that variables are stored in columns and observations in rows coupled with a straightforward use of descriptive functions with consistent outputs. It is conceptually simple but can be tricky in practice.
+
+For example, take the following table of global life expectancies. Is it tidy?
+
+```{r}
+life_expectancies
+```
+
+No! It is not tidy because time is a variable so should have its own column, also the numbers all measure the same thing (life expectancies). The *tidyr* package contains functions for tidying your data. I won't dwell on this too long as everyone has different data. However in this case the function **gather()** can be used to collapse columns into key-value pairs.
+
+```{r}
+life_expectancies <- gather(life_expectancies, year, lifeExp, -country, -continent)
+life_expectancies 
+```
+This is tidy! Note how I specified the new columns (i.e. year and lifeExp) and excluded the columns I did not want gathered (i.e.  country and continent). The *tidyr* package also contains the **spread()** function which does the opposite of **gather()**, as well as the **separate()** and **unite()** functions which split or merge columns respectively.
+
+In order to get the hang of this I recommend everytime you get a new data set practice transposing it (swap rows and columns) with **gather()** and **spread()**. 
+
+#### How is your Data Structured?
+
+In order to have 'tidy' data you need to know what your data looks like. I think of this as your *mental model* of the data. To do this I recomend **glimpse()**, **head()** and **View()** which are perahps the most important functions in R!
+
+**glimpse()** (or in base R **str()**) prints a summmary of your data. This is a quick way to see the dimensions of your data, the names of the variables, their type and some example data.
+
+```{r}
+glimpse(life_expectancies)
+```
+
+**head()** prints the first n rows of data and when using RStudio **View()** brings up a spreadsheet of the data to visually inspect.
+
+## Background to ggplot2
+
+*ggplot2* is an implementation of the Grammar of Graphics by Leland Wilkinson and can be used to produce publication quality graphics. However its real power is to quickly visualise data in a flexible manner. All graphs follow a consistent and modular workflow with different elements being added in layers. While logical this method is not intuitive to new users coming from other platforms and so I feel some background is beneficial. The best indroduction is via example.
+
+1. Every graph begins with the creation of a a ggplot object which requires a dataframe and aesthetics (i.e. what variables to use)
+```{r eval=FALSE}
+ggplot(life_expectancies, aes(year, lifeExp))
+```
+
+2. Graphical layers (or 'geoms') can then be added. For instance, if we wanted to plot the distrobution of life expectancies in each year we could use boxplots like so.
+
+  + This just involves the addition of **+ geom_boxplot()**
+```{r}
+ggplot(life_expectancies, aes(year, lifeExp)) +
+  geom_boxplot()
+```
+
+3. ggplot2 graphs are modular so can be easily added to, altered or changed. For instance, if after creating the boxplot above you see a positive trend over time and realise that you want to capture this trend for individual countries. 
+
+  + This can be achieved by swapping out the **geom_boxplot()** for **geom_point()** in combination with **geom_line()**. 
+  + This also requires specifing how the observations in each year are related to one another. Thus you can group obsevations by a variable and specify it in the aesthetics. In this case we want to group by 'country'.
+
+
+```{r}
+ggplot(life_expectancies, aes(year, lifeExp, group = country)) +
+  geom_point() +
+  geom_line()
+```
+
+  + Great, but it is now difficult to tell what is going on. One way around this is to use colour, which is another parameter of aesthetics. In this case lets colour by continent.
+  
+  
+```{r fig.width=4}
+ggplot(life_expectancies, aes(year, lifeExp, group = country, colour = continent)) +
+  geom_point() +
+  geom_line()
+```
+
+4. We can now see there are clear differences between continents but comparing them is difficult on one graph. One approach is to create sub-plots or 'facets' using the **facet_grid()** call. This is a powerful function and can split the data in two directions and is determined by a formula call with rows on the left and columns on the right. I think the best representation of the graph above would be to split it into five sub-plots, one for each continent.
+
+```{r fig.width=9}
+ggplot(life_expectancies, aes(year, lifeExp, group = country, colour = continent)) +
+geom_point() +
+geom_line() +
+facet_grid(.~continent)
+```
+
+## 2011 Houston Flight data
+
+This dataset contains all flights departing from Houston airports IAH (George Bush Intercontinental) and HOU (Houston Hobby) in 2011. The data comes from the [Research and Innovation Technology Administration](https://www.transtats.bts.gov/DatabaseInfo.asp?DB_ID=120&Link=0) at the Bureau of Transporation statistics and comes via a R package called *hflights*. 
+
+I have included this dataset in *IntermediateR* and complemented it with hourly werather data for Houston in 2011 as well as metadata about the planes and other aiports in the USA.
+
+Here is a summary:
+
+* **flights** - [227,496 x 14]
+    * Every flight departing Houston in 2011.
+* **weather** - [8,723 x 14]
+    * Hourly weather data.
+* **planes** - [2,853 x 9]
+    * Plane metadata.
+* **airports** - [3,376 x 7]
+    * Airport metadata.
+
+## Data transformation
+
+At this point I should acknowledge that the majority of the rest of this vignette is based off Hadley Wickams *Data Manipulation with dplyr* presentation from June 2014.
+

@@ -11,5 +11,10 @@ LazyData: true
 URL: https://github.com/G-Thomson/IntermediateR
 BugReports: https://github.com/G-Thomson/IntermediateR/issues
 Imports:
-  tidyverse
-
+  tidyverse,
+  hflights
+Depends:
+  hflights
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
