@@ -14,7 +14,7 @@ vignette: >
 
 #### Data
 
-This notebook contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this worksop can be found in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
+This vignette contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this worksop is included in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
  
 ```{r, message=FALSE, warning=FALSE}
 library(IntermediateR)
@@ -117,7 +117,7 @@ I have included this dataset in *IntermediateR* and complemented it with hourly 
 
 Here is a summary:
 
-* **flights** - [227,496 x 14]
+* **flights** - [227,496 x 21]
     * Every flight departing Houston in 2011.
 * **weather** - [8,723 x 14]
     * Hourly weather data.
@@ -126,7 +126,52 @@ Here is a summary:
 * **airports** - [3,376 x 7]
     * Airport metadata.
 
-## Data transformation
+Familiarise yourself with this data.
 
-At this point I should acknowledge that the majority of the rest of this vignette is based off Hadley Wickams *Data Manipulation with dplyr* presentation from June 2014.
+## Data Transformation
 
+At this point I should acknowledge that the majority of the rest of this vignette is based off Hadley Wickam's *Data Manipulation with dplyr* presentation from June 2014.
+
+#### dplyr verbs
+
+*dplyr* (and the tidyverse more generally) is a collection of functions named after English verbs which describe the action they perform on the data. While there are quite a few. The core ones that should be learnt are as follows:
+
+* **filter()** 
+    * keep rows matching criteria
+* **select()** 
+    * pick columns by name
+* **arrange()** 
+    * reorder rows
+* **mutate()** 
+    * add new variables
+* **summarise()** 
+    * reduce variables to values
+
+With *dplyr* verbs, the first argument is a data frame (or more accurately a tibble, but don't worry about that) and subsequent arguments say what to do with the data frame. Furthemore these functions always return a data frame.
+
+### filter()
+
+**filter()** is a function which returns rows where specified conditions are true. Those that are NA are dropped.
+
+Use **filter()** to plot a scatter plot of planes flying to San Francisco or Oakland, in January
+
+# Plot a scatter plot of planes flying to San Frncisco or Oakland, in January
+filter(flights, dest %in% c("SFO", "OAK")) %>%
+  filter(date < "2011-02-01") %>%
+  filter(arr_delay > 0, dep_delay > 0) %>%
+  ggplot(aes(dep_delay, arr_delay, colour = dest)) +
+  geom_point() +
+  facet_grid(.~dest)
+
+### select()
+### arrange()
+### mutate()
+### summarise() 
+
+## Grouped Data
+
+## Data Pipelines
+
+## Joining Datasets
+
+## Further Reading
