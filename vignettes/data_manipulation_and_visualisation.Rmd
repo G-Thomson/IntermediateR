@@ -18,8 +18,6 @@ This vignette contains the exempla code for the *Intermediate R: Data Manipulati
  
 ```{r, message=FALSE, warning=FALSE}
 library(IntermediateR)
-#temp
-load("~/Documents/Projects/Intermediate_R/package/IntermediateR/data/weather.RData")
 ```
 
 #### The Tidyverse

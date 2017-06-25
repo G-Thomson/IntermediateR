@@ -1,6 +1,10 @@
-distinct()
+## FILTER
+distinct() drop_na() do and use?
+
 rows that occur greater than once
-rows with NAs
+
+
+
 pull()
 
 rename
@@ -9,5 +13,6 @@ mutate_if intriduce scooped
 
 summarise_if(is.numeric(), colSums)
 summarise(df, unique())
+count() Multiple variables
 
 error bars
