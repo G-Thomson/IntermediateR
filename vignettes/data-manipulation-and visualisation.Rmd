@@ -14,10 +14,12 @@ vignette: >
 
 #### Data
 
-This vignette contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this worksop is included in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
+This vignette contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this workshop is included in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
  
 ```{r, message=FALSE, warning=FALSE}
 library(IntermediateR)
+#temp
+load("~/Documents/Projects/Intermediate_R/package/IntermediateR/data/weather.RData")
 ```
 
 #### The Tidyverse
@@ -32,7 +34,7 @@ library(tidyverse)
 
 ## Tidy data
 
-Tidy data is simple the consistent structuring of data such that variables are stored in columns and observations in rows coupled with a straightforward use of descriptive functions with consistent outputs. It is conceptually simple but can be tricky in practice.
+Tidy data is the consistent structuring of data such that variables are stored in columns and observations in rows coupled with a straightforward use of descriptive functions with consistent outputs. It is conceptually simple but can be tricky in practice.
 
 For example, take the following table of global life expectancies. Is it tidy?
 
@@ -46,7 +48,7 @@ No! It is not tidy because time is a variable so should have its own column, als
 life_expectancies <- gather(life_expectancies, year, lifeExp, -country, -continent)
 life_expectancies 
 ```
-This is tidy! Note how I specified the new columns (i.e. year and lifeExp) and excluded the columns I did not want gathered (i.e.  country and continent). The *tidyr* package also contains the **spread()** function which does the opposite of **gather()**, as well as the **separate()** and **unite()** functions which split or merge columns respectively.
+This is tidy! Note how I specified the new column names (i.e. year and lifeExp) and excluded the columns I did not want gathered (i.e.  country and continent). The *tidyr* package also contains the **spread()** function which does the opposite of **gather()**, as well as the **separate()** and **unite()** functions which split or merge columns respectively.
 
 In order to get the hang of this I recommend everytime you get a new data set practice transposing it (swap rows and columns) with **gather()** and **spread()**. 
 
@@ -71,7 +73,7 @@ glimpse(life_expectancies)
 ggplot(life_expectancies, aes(year, lifeExp))
 ```
 
-2. Graphical layers (or 'geoms') can then be added. For instance, if we wanted to plot the distrobution of life expectancies in each year we could use boxplots like so.
+2. Graphical layers (or 'geoms') can then be added. For instance, if we wanted to plot the distribution of life expectancies in each year we could use boxplots like so.
 
   + This just involves the addition of **+ geom_boxplot()**
 ```{r}
@@ -91,7 +93,7 @@ ggplot(life_expectancies, aes(year, lifeExp, group = country)) +
   geom_line()
 ```
 
-  + Great, but it is now difficult to tell what is going on. One way around this is to use colour, which is another parameter of aesthetics. In this case lets colour by continent.
+  + Great, but it is now difficult to tell what is going on. One way around this is to use colour, which is another parameter that can be defined in aesthetics. In this case lets colour by continent. Note, that you can also define colour oustside of aesthetics but this means the colour of the lines is not dependent on the data an so will all be the same colour.
   
   
 ```{r fig.width=4}
@@ -100,7 +102,7 @@ ggplot(life_expectancies, aes(year, lifeExp, group = country, colour = continent
   geom_line()
 ```
 
-4. We can now see there are clear differences between continents but comparing them is difficult on one graph. One approach is to create sub-plots or 'facets' using the **facet_grid()** call. This is a powerful function and can split the data in two directions and is determined by a formula call with rows on the left and columns on the right. I think the best representation of the graph above would be to split it into five sub-plots, one for each continent.
+4. We can now see there are clear differences between continents but comparing them is difficult on one graph. One approach is to create sub-plots or 'facets' using the **facet_grid()** call. This is a powerful function and can split the data in two directions. It is called using a formula call with rows on the left and columns on the right. I think the best representation of the graph above would be to split it into five sub-plots, one for each continent.
 
 ```{r fig.width=9}
 ggplot(life_expectancies, aes(year, lifeExp, group = country, colour = continent)) +
@@ -117,7 +119,7 @@ I have included this dataset in *IntermediateR* and complemented it with hourly 
 
 Here is a summary:
 
-* **flights** - [227,496 x 21]
+* **hflights** - [227,496 x 21]
     * Every flight departing Houston in 2011.
 * **weather** - [8,723 x 14]
     * Hourly weather data.
@@ -134,7 +136,7 @@ At this point I should acknowledge that the majority of the rest of this vignett
 
 #### dplyr verbs
 
-*dplyr* (and the tidyverse more generally) is a collection of functions named after English verbs which describe the action they perform on the data. While there are quite a few. The core ones that should be learnt are as follows:
+*dplyr* (and the tidyverse more generally) is a collection of functions named after English verbs which describe the action they perform on the data. While there are quite a few. The core ones that should be learnt first are as follows:
 
 * **filter()** 
     * keep rows matching criteria
@@ -153,20 +155,144 @@ With *dplyr* verbs, the first argument is a data frame (or more accurately a tib
 
 **filter()** is a function which returns rows where specified conditions are true. Those that are NA are dropped.
 
-Use **filter()** to plot a scatter plot of planes flying to San Francisco or Oakland, in January
+Planes don't always run to time. Use **filter()** to plot a scatter plot of planes flying to San Francisco or Oakland, in January
 
-# Plot a scatter plot of planes flying to San Frncisco or Oakland, in January
-filter(flights, dest %in% c("SFO", "OAK")) %>%
-  filter(date < "2011-02-01") %>%
-  filter(arr_delay > 0, dep_delay > 0) %>%
-  ggplot(aes(dep_delay, arr_delay, colour = dest)) +
+1. *Plot a scatter plot of planes flying to San Francisco or Oakland, in January (hint: use **geom_point()**)*
+
+```{r fig.width=4}
+SF_data <- filter(hflights, Dest %in% c("SFO", "OAK"))
+SF_data <- filter(SF_data, Month < 2)
+
+ggplot(SF_data, aes(DepDelay, ArrDelay, colour = Dest)) +
   geom_point() +
-  facet_grid(.~dest)
+  facet_grid(.~Dest) +
+  theme(legend.position = "none")
+```
+
+2. *and on which day of the week (Monday = 1; Sunday = 7) did the most delayed flights occur? (hint: use **facet_grid()**)*
+
+```{r fig.width=9}
+SF_data <- filter(hflights, Dest %in% c("SFO", "OAK"))
+SF_data <- filter(SF_data, Month < 2)
+
+ggplot(SF_data, aes(DepDelay, ArrDelay, colour = Dest)) +
+  geom_point() +
+  facet_grid(.~DayOfWeek) 
+```
 
 ### select()
+
+**select()** is a very flexible function which keeps only the columns you specify, reducing the variables in your dataframe. It can also be used to reorder the columns in your dataframe.
+
+For example, in the **weather** dataset the direction of the wind is recorded in both the cardinal directions and the more accurate compass bearing. In addition the speed is given. Use **select()** to create a dataframe of just these columns. 
+
+1. *Select just the 'wind_dir', 'wind_dir2' and 'wind_speed' columns*
+
+```{r}
+select(weather, wind_dir, wind_dir2, wind_speed)
+
+```
+
+2. *and explore the flexibility in this function. Read the docs ('?select') and find three other ways to do this (hint: see 'Useful functions')*
+
+```{r eval=FALSE}
+select(weather, wind_dir:wind_speed)
+
+select(weather, starts_with("wind"))
+
+select(weather, contains("wind"))
+```
+
+These commands all produce the same result. While this small example is trivial hopefully you can see how this might be useful in larger datasets.
+
+3. *Can you plot a histogram of the wind speeds? (hint: use **geom_histogram()**; note: that there are missing values in this data)*
+
+```{r warning=FALSE}
+wind <- select(weather, starts_with("wind"))
+
+ggplot(wind, aes(wind_speed)) +
+  geom_histogram(binwidth = 2)
+```
+
+*What does **geom_density()** do?*
+
+```{r warning=FALSE}
+ggplot(wind, aes(wind_speed)) +
+  geom_density()
+```
+
+This creates a kernel density estimate, which is a smoothed version of the histogram. This is useful for overlaying distributions of data.
+
+4. *What if you want to extract one column as a vector? Does selecting just one variable do this?*
+
+```{r eval=FALSE}
+select(weather, wind_speed)
+```
+
+No! This returns a data frame (with one column). If we want it as a vector we can use the verb **pull()** like so:
+
+```{r eval=FALSE}
+pull(weather, wind_speed)
+```
+
+this is equivalent to:
+
+```{r eval=FALSE}
+weather$wind_speed
+```
+
 ### arrange()
+
+**arrange()** is a function used to sort a dataframe. You can specify the variable(s) you wish to sort by.
+
+1. *Looking at the 'planes' dataset, how old is the oldest aircraft flying out of Houston?*
+
+
+```{r}
+arrange(planes, year)
+```
+
+2. *Looking at the 'weather' dataset, what was the warmest recorded temperature in Houston?*
+
+```{r}
+arrange(weather, desc(temp))
+```
+
 ### mutate()
+
+
+**mutate()** is a function which can be used to adds new variable to a dataframe. These can be functions of existing variables. It is also useful to edit existing columns.
+
+We previously saw that the warmest temperature on record was 108.0°F. I am more familiar with celcius, can we convert it to that? 
+
+1. *Create a new column (hint: °C = (°F-32)/1.8 )*
+
+```{r}
+weather <- mutate(weather, temp_cel = (temp-32)/1.8) 
+```
+
+Look at this column, it has 6 decimal places, I think two is enough.
+
+2. *Edit this column so that it only has two decmal places*
+```{r}
+weather <- mutate(weather, temp_cel = round(temp_cel, digits = 2)) 
+```
+
+Houston in summer is hot! It would be nice to see this visualised in a way such that the variation is not lost. We could use this data to make a heatmap of the temperatures (in celcius of course) throughout the month of July.
+
+3. *Create a heatmap (hint: **geom_tile()**) of the temperature for each day in the month of July (hour vs day). To do this you will need to **filter()** first.*
+
+```{r}
+weather_july <- filter(weather, month == 7)
+
+ggplot(weather_july, aes(hour, day, fill = temp_cel)) + 
+  geom_tile() +
+  scale_fill_gradientn(colours = c("#ECD078", "#C02942"), na.value="grey90")
+```
+
 ### summarise() 
+
+**summarise()** is a function which reduces multiple values down to a single value. It is mostly used with grouped data (see next section). 
 
 ## Grouped Data
 
