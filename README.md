@@ -17,7 +17,7 @@ e.g.
 
 ```r
 
-TBD
+vignette("data_manipulation_and_visualisation")
 ```
 
 
