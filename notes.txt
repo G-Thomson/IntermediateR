@@ -16,3 +16,5 @@ summarise(df, unique())
 count() Multiple variables
 
 error bars
+
+

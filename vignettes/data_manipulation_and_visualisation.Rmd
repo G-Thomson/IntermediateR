@@ -294,8 +294,118 @@ ggplot(weather_july, aes(hour, day, fill = temp_cel)) +
 
 ## Grouped Data
 
+Data can be subsetted into **groups** which allows to perform operations on subsets or combinations of variables
+
+Let us return to the question of how much flights are delayed? Since this is a large dataset it would be nice to condense it so that it is easier to interpret.
+
+1. *Group by Month and calculate the mean departure delay, in addition calculate the standard deviation and number of delayed flights (hint: mean(), sd(), and n() are useful functions)*
+
+Note: you will likely have to account for data which is missing (here it is "NA")
+
+```{r}
+delayed_flights <- filter(hflights, !is.na(DepDelay))
+delayed_flights <- group_by(delayed_flights, Month) 
+delayed_flights <- summarise(delayed_flights, delay_mean = mean(DepDelay), 
+                             delay_sd = sd(DepDelay), 
+                             n = n()) 
+delayed_flights
+```
+
+2. *Can you then calculate the standard error and then a 95% confidence inteval?*
+
+Note: Standard error (se) is $\frac{sd}{\sqrt{n}}$ and ci is $\frac{t-statistic}{se}$
+
+The relevant t-statistic can be obtained from `qt(1 - (0.05 / 2), n - 1)`
+
+```{r}
+delayed_flights <- mutate(delayed_flights, delay_se = delay_sd / sqrt(n),
+                          ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+delayed_flights
+```
+
+
 ## Data Pipelines
 
+```{r eval=FALSE}
+mutate(
+  summarise(
+    group_by(
+      filter(
+        hflights, !is.na(DepDelay)), 
+      Month), 
+    delay_mean = mean(DepDelay), 
+    delay_sd = sd(DepDelay), 
+    n = n()), 
+  delay_se = delay_sd / sqrt(n), 
+  ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+```
+
+
+```{r eval=FALSE}
+delayed_flights <- hflights %>%
+  filter(!is.na(DepDelay)) %>%
+  group_by(Month) %>%
+  summarise(delay_mean = mean(DepDelay), 
+            delay_sd = sd(DepDelay),
+            n = n())  %>% 
+  mutate(delay_se = delay_sd / sqrt(n),
+         ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+```
+
+```{r}
+  ggplot(delayed_flights, aes(Month, delay_mean)) +
+    geom_bar(stat="identity") +
+    geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) 
+```
+
+Experiment
+
 ## Joining Datasets
+
+```{r}
+uniq_dest <- unique(hflights$Dest) 
+```
+
+```{r message=FALSE}
+usa <- map_data("state")
+
+rel_airports <- airports %>% 
+  filter(iata %in% c("IAH", "HOU", uniq_dest)) %>% 
+  select(iata, lat, long) %>% 
+  rename(Dest = iata) 
+
+rel_flights <- hflights %>% 
+  distinct(Origin, Dest) %>% 
+  mutate(origin_lat = 29.65, origin_long = -95.28) %>% 
+  select(Origin, origin_lat, origin_long, Dest) 
+```
+
+
+```{r}
+rel_flights_airports <- rel_flights %>% 
+  left_join(rel_airports, by = "Dest") %>% 
+  rename(dest_lat = lat, dest_long = long)
+
+US_conn <- rel_flights_airports %>% 
+  filter(!Dest%in% c("SJU", "ANC", "HNL", "ECP", "BKG"))
+```
+
+
+
+
+```{r fig.width=5}
+ggplot(usa, aes(x=long, y=lat)) + 
+  geom_map(map=usa, aes(map_id=region),  fill="#ffffff", color="black", size=0.15) +
+  geom_curve(data = US_conn, aes(x = origin_long, y = origin_lat, xend = dest_long, yend = dest_lat), col = "#CC333F", alpha = 0.2, size = 1, curvature = .2) +
+  theme(panel.background = element_rect(fill="white"), 
+        axis.line = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+  )
+```
+
 
 ## Further Reading
