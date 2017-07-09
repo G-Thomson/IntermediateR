@@ -432,6 +432,7 @@ I hope you can see how minor tweaks to the code allow the rapid exploration of t
 More complex analyses require data from multiple datasets (e.g. a lookup table). In this case I would like to create a image such as this: 
 
 ![](map.png){ width=50% }
+
 1. *How can we make a plot like this? What data is required?*
 
 The data required is the geospatial data depicting the United States, the unique flights from Houston and the locations of these destinations.
