@@ -9,12 +9,29 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## Contents
 
-## Getting set up
+- [Getting set up](#setup)
+- [Tidy data](#tidy)
+- [Background to ggplot2](#ggplot)
+- [2011 Houston Flight data](#flights)
+- [Data Transformation](#transform)
+    + [filter()](#filter)
+    + [select()](#select)
+    + [arrange()](#arrange)
+    + [mutate()](#mutate)
+    + [summarise()](#summarise)
+- [Grouped data](#group)
+- [Data Pipelines](#pipe)
+- [Joining Datasets](#join)
+- [Whats Next?](#next)
+- [Further Reading](#reading)
+
+## Getting set up {#setup}
 
 #### Data
 
-This vignette contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Data used in this workshop is included in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
+This vignette contains the exempla code for the *Intermediate R: Data Manipulation and Visualisation* workshop. Specifically the hands on exercises. Data used in this workshop is included in the *IntermediateR* package avaliable at <https://github.com/G-Thomson/IntermediateR>. Once you have installed the package simply load the package to access the data.
  
 ```{r, message=FALSE, warning=FALSE}
 library(IntermediateR)
@@ -30,7 +47,7 @@ The *tidyverse* package loads the most commonly used *tidyverse* packages and wa
 library(tidyverse)
 ```
 
-## Tidy data
+## Tidy data {#tidy}
 
 Tidy data is the consistent structuring of data such that variables are stored in columns and observations in rows coupled with a straightforward use of descriptive functions with consistent outputs. It is conceptually simple but can be tricky in practice.
 
@@ -62,7 +79,7 @@ glimpse(life_expectancies)
 
 **head()** prints the first n rows of data and when using RStudio **View()** brings up a spreadsheet of the data to visually inspect.
 
-## Background to ggplot2
+## Background to ggplot2 {#ggplot}
 
 *ggplot2* is an implementation of the Grammar of Graphics by Leland Wilkinson and can be used to produce publication quality graphics. However its real power is to quickly visualise data in a flexible manner. All graphs follow a consistent and modular workflow with different elements being added in layers. While logical this method is not intuitive to new users coming from other platforms and so I feel some background is beneficial. The best indroduction is via example.
 
@@ -109,7 +126,7 @@ geom_line() +
 facet_grid(.~continent)
 ```
 
-## 2011 Houston Flight data
+## 2011 Houston Flight data {#flights}
 
 This dataset contains all flights departing from Houston airports IAH (George Bush Intercontinental) and HOU (Houston Hobby) in 2011. The data comes from the [Research and Innovation Technology Administration](https://www.transtats.bts.gov/DatabaseInfo.asp?DB_ID=120&Link=0) at the Bureau of Transporation statistics and comes via a R package called *hflights*. 
 
@@ -128,7 +145,7 @@ Here is a summary:
 
 Familiarise yourself with this data.
 
-## Data Transformation
+## Data Transformation {#transformation}
 
 At this point I should acknowledge that the majority of the rest of this vignette is based off Hadley Wickam's *Data Manipulation with dplyr* presentation from June 2014.
 
@@ -149,7 +166,7 @@ At this point I should acknowledge that the majority of the rest of this vignett
 
 With *dplyr* verbs, the first argument is a data frame (or more accurately a tibble, but don't worry about that) and subsequent arguments say what to do with the data frame. Furthemore these functions always return a data frame.
 
-### filter()
+### filter() {#filter}
 
 **filter()** is a function which returns rows where specified conditions are true. Those that are NA are dropped.
 
@@ -162,23 +179,18 @@ SF_data <- filter(hflights, Dest %in% c("SFO", "OAK"))
 SF_data <- filter(SF_data, Month < 2)
 
 ggplot(SF_data, aes(DepDelay, ArrDelay, colour = Dest)) +
-  geom_point() +
-  facet_grid(.~Dest) +
-  theme(legend.position = "none")
+  geom_point()
 ```
 
 2. *and on which day of the week (Monday = 1; Sunday = 7) did the most delayed flights occur? (hint: use **facet_grid()**)*
 
 ```{r fig.width=9}
-SF_data <- filter(hflights, Dest %in% c("SFO", "OAK"))
-SF_data <- filter(SF_data, Month < 2)
-
 ggplot(SF_data, aes(DepDelay, ArrDelay, colour = Dest)) +
   geom_point() +
   facet_grid(.~DayOfWeek) 
 ```
 
-### select()
+### select() {#select}
 
 **select()** is a very flexible function which keeps only the columns you specify, reducing the variables in your dataframe. It can also be used to reorder the columns in your dataframe.
 
@@ -203,25 +215,7 @@ select(weather, contains("wind"))
 
 These commands all produce the same result. While this small example is trivial hopefully you can see how this might be useful in larger datasets.
 
-3. *Can you plot a histogram of the wind speeds? (hint: use **geom_histogram()**; note: that there are missing values in this data)*
-
-```{r warning=FALSE}
-wind <- select(weather, starts_with("wind"))
-
-ggplot(wind, aes(wind_speed)) +
-  geom_histogram(binwidth = 2)
-```
-
-*What does **geom_density()** do?*
-
-```{r warning=FALSE}
-ggplot(wind, aes(wind_speed)) +
-  geom_density()
-```
-
-This creates a kernel density estimate, which is a smoothed version of the histogram. This is useful for overlaying distributions of data.
-
-4. *What if you want to extract one column as a vector? Does selecting just one variable do this?*
+3. *What if you want to extract one column as a vector? Does selecting just one variable do this?*
 
 ```{r eval=FALSE}
 select(weather, wind_speed)
@@ -239,7 +233,26 @@ this is equivalent to:
 weather$wind_speed
 ```
 
-### arrange()
+4. *Can you plot a histogram of the wind speeds? (hint: use **geom_histogram()**; note that there are missing values in this data)*
+
+```{r warning=FALSE}
+wind <- select(weather, starts_with("wind"))
+
+ggplot(wind, aes(wind_speed)) +
+  geom_histogram(binwidth = 2)
+```
+
+*What does **geom_density()** do?*
+
+```{r warning=FALSE}
+ggplot(wind, aes(wind_speed)) +
+  geom_density()
+```
+
+This creates a kernel density estimate, which is a smoothed version of the histogram. This is useful for overlaying distributions of data.
+
+
+### arrange() {#arrange}
 
 **arrange()** is a function used to sort a dataframe. You can specify the variable(s) you wish to sort by.
 
@@ -256,14 +269,14 @@ arrange(planes, year)
 arrange(weather, desc(temp))
 ```
 
-### mutate()
+### mutate() {#mutate}
 
 
 **mutate()** is a function which can be used to adds new variable to a dataframe. These can be functions of existing variables. It is also useful to edit existing columns.
 
 We previously saw that the warmest temperature on record was 108.0°F. I am more familiar with celcius, can we convert it to that? 
 
-1. *Create a new column (hint: °C = (°F-32)/1.8 )*
+1. *Create a new column coverting fahrenheit to celcius (hint: °C = (°F-32)/1.8 )*
 
 ```{r}
 weather <- mutate(weather, temp_cel = (temp-32)/1.8) 
@@ -288,11 +301,11 @@ ggplot(weather_july, aes(hour, day, fill = temp_cel)) +
   scale_fill_gradientn(colours = c("#ECD078", "#C02942"), na.value="grey90")
 ```
 
-### summarise() 
+### summarise() {#summarise}
 
 **summarise()** is a function which reduces multiple values down to a single value. It is mostly used with grouped data (see next section). 
 
-## Grouped Data
+## Grouped Data {#group}
 
 Data can be subsetted into **groups** which allows to perform operations on subsets or combinations of variables
 
@@ -324,7 +337,11 @@ delayed_flights
 ```
 
 
-## Data Pipelines
+## Data Pipelines {#pipe}
+
+In reality, data analysis requires the use of multiple functions.
+
+Commands can be done one at a time or combined. For example, if we combine the analysis from the previous section we get:
 
 ```{r eval=FALSE}
 mutate(
@@ -340,6 +357,14 @@ mutate(
   ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
 ```
 
+However this is messy and difficult to read as the variables get separated from the function calls. Understanding and editing is thus comprimised.
+
+One solution is to write out each function on it's own line assigning it to a variable, but this is verbose and clunky. An alternative is the pipe operator from the *magrittr* which looks like this %>% (there are others but lets stick to one for now). The way it works is that it links two functions such that the output of the function on the left becomes the first variable of the function on the right. Therefore instead of writing $f(x, y)$ one can write $x$ %>% $f(y)$.
+
+This means the output of one function can become the input of a second and thus chain together multiple
+functions. This results in more concice, readable code. When reading the convention is to pronounce %>% as 'then'.
+
+1. *Rewrite the summary of the delayed flights (mean, standard deviation, etc.) from the previous section using pipes*
 
 ```{r eval=FALSE}
 delayed_flights <- hflights %>%
@@ -352,34 +377,87 @@ delayed_flights <- hflights %>%
          ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
 ```
 
+
+2. *Can you pipe it into a barchart? (hint: **geom_bar(stat=”identity”)** and **geom_errorbar(aes(ymin, ymax)))** *
+
 ```{r}
   ggplot(delayed_flights, aes(Month, delay_mean)) +
     geom_bar(stat="identity") +
     geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) 
 ```
 
-Experiment
+Note how here we have to use **stat="identity"** when calling **geom_bar()**. This hints at some of the underlying complexity in ggplot2. Briefly, most geoms also have some sort of transformation (or 'stat') associated with them to allow visualisation. **geom_bar()** actually has several but **stat="identity"** forces it to use the value you provide and not try to generate the total/average itself. While the use of **stat="identity"** is not the default I nevertheless find it is the most common.
 
-## Joining Datasets
+3. *Experiment with the groupings, instead of Month try DayOfWeek; try both simultaneously*
+
+- Group by DayOfWeek
 
 ```{r}
-uniq_dest <- unique(hflights$Dest) 
+hflights %>%
+  filter(!is.na(DepDelay)) %>%
+  group_by(DayOfWeek) %>%
+  summarise(delay_mean = mean(DepDelay), 
+            delay_sd = sd(DepDelay),
+            n = n())  %>% 
+  mutate(delay_se = delay_sd / sqrt(n),
+         ci = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
+  
+  ggplot(aes(DayOfWeek, delay_mean)) +
+  geom_bar(stat="identity") +
+  geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) 
 ```
 
+- Group by Month and DayOfWeek
+
+```{r fig.width=9}
+hflights %>%
+  filter(!is.na(DepDelay)) %>%
+  group_by(Month, DayOfWeek) %>%
+  summarise(delay_mean = mean(DepDelay), 
+            delay_sd = sd(DepDelay),
+            n = n())  %>% 
+  mutate(delay_se = delay_sd / sqrt(n),
+         ci = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
+  
+  ggplot(aes(DayOfWeek, delay_mean)) +
+  geom_bar(stat="identity") +
+  geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) +
+  facet_grid(.~Month)
+```
+
+I hope you can see how minor tweaks to the code allow the rapid exploration of the data.
+
+## Joining Datasets {#join}
+
+More complex analyses require data from multiple datasets (e.g. a lookup table). In this case I would like to create a image such as this: 
+
+![](map.png){ width=50% }
+1. *How can we make a plot like this? What data is required?*
+
+The data required is the geospatial data depicting the United States, the unique flights from Houston and the locations of these destinations.
+
+Fortunately *ggplot2* has several simple geospatial data sets including the United States which we can use. We can obtain a list of the unique flights from the **hflights** dataset and the locations of the airport destinations from the **airports** dataset.
+
 ```{r message=FALSE}
+# Geospatial data
 usa <- map_data("state")
 
-rel_airports <- airports %>% 
-  filter(iata %in% c("IAH", "HOU", uniq_dest)) %>% 
-  select(iata, lat, long) %>% 
-  rename(Dest = iata) 
-
+# Unique flights from Houston
 rel_flights <- hflights %>% 
   distinct(Origin, Dest) %>% 
   mutate(origin_lat = 29.65, origin_long = -95.28) %>% 
-  select(Origin, origin_lat, origin_long, Dest) 
+  select(Origin, origin_lat, origin_long, Dest)
+
+# Location of the airport destinations 
+rel_airports <- airports %>% 
+  filter(iata %in% c("IAH", "HOU", rel_flights$Dest)) %>% 
+  select(iata, lat, long) %>% 
+  rename(Dest = iata) 
+
+ 
 ```
 
+These datasets then need to be combined this can be achieved using a *left_join()*. Note I also omit flights to destinations outside the United States or Airports which are either private or have closed since 2011.
 
 ```{r}
 rel_flights_airports <- rel_flights %>% 
@@ -390,8 +468,7 @@ US_conn <- rel_flights_airports %>%
   filter(!Dest%in% c("SJU", "ANC", "HNL", "ECP", "BKG"))
 ```
 
-
-
+I can then use the geospatial data to draw a map and the combined flight and destination data to draw the flights.
 
 ```{r fig.width=5}
 ggplot(usa, aes(x=long, y=lat)) + 
@@ -408,4 +485,17 @@ ggplot(usa, aes(x=long, y=lat)) +
 ```
 
 
-## Further Reading
+## Whats Next? {#next}
+
+It is important to practice using these tools with your own data. Even if you find it slow and difficult at first. Also, ask for help when you get stuck.
+
+## Further Reading {#reading}
+
+- [*R for Data Science* by G. Grolemund and  H. Wickham](http://r4ds.had.co.nz/)
+- [Rstudio Cheatsheets](https://www.rstudio.com/resources/cheatsheets/)
+- [R graph catalog](http://shiny.stat.ubc.ca/r-graph-catalog/), [ggextensions](http://www.ggplot2-exts.org/gallery/),  [ggedit](http://r-posts.com/ggedit-0-2-0-is-now-on-cran/) and [ggplot2 significance levels](http://www.sthda.com/english/wiki/add-p-values-and-significance-levels-to-ggplots)
+- [STAT 545](http://stat545.com/index.html) - Jenny Bryan's postgraduate R course  at UBC
+- Apply functions to [a selection of variables](http://dplyr.tidyverse.org/reference/scoped.html)
+- Vignette on [Window functions](https://cran.r-project.org/web/packages/dplyr/vignettes/window-functions.html)
+- Look into [*lubridate*](http://lubridate.tidyverse.org/) for dates and [*stringr*](http://stringr.tidyverse.org/) for strings (see  [this tutorial](https://rstudio-pubs-static.s3.amazonaws.com/180610_d3764c43f1e54692b7e84d21ec94772a.html?utm_content=buffer13f71&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer#1)) and [*forcats*](http://forcats.tidyverse.org/) for catagorical variables.
+
