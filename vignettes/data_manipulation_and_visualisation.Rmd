@@ -324,15 +324,15 @@ delayed_flights <- summarise(delayed_flights, delay_mean = mean(DepDelay),
 delayed_flights
 ```
 
-2. *Can you then calculate the standard error and then a 95% confidence inteval?*
+2. *Can you then calculate the standard error and then a 95% margin of error (half a confidence interval)?*
 
-Note: Standard error (se) is $\frac{sd}{\sqrt{n}}$ and ci is $\frac{t-statistic}{se}$
+Note: Standard error (se) is $\frac{sd}{\sqrt{n}}$ and margin of error (moe) is $\frac{t-statistic}{se}$
 
 The relevant t-statistic can be obtained from `qt(1 - (0.05 / 2), n - 1)`
 
 ```{r}
 delayed_flights <- mutate(delayed_flights, delay_se = delay_sd / sqrt(n),
-                          ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+                          moe = qt(1 - (0.05 / 2), n - 1) * delay_se)
 delayed_flights
 ```
 
@@ -354,7 +354,7 @@ mutate(
     delay_sd = sd(DepDelay), 
     n = n()), 
   delay_se = delay_sd / sqrt(n), 
-  ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+  moe = qt(1 - (0.05 / 2), n - 1) * delay_se)
 ```
 
 However this is messy and difficult to read as the variables get separated from the function calls. Understanding and editing is thus comprimised.
@@ -362,7 +362,7 @@ However this is messy and difficult to read as the variables get separated from 
 One solution is to write out each function on it's own line assigning it to a variable, but this is verbose and clunky. An alternative is the pipe operator from the *magrittr* which looks like this %>% (there are others but lets stick to one for now). The way it works is that it links two functions such that the output of the function on the left becomes the first variable of the function on the right. Therefore instead of writing $f(x, y)$ one can write $x$ %>% $f(y)$.
 
 This means the output of one function can become the input of a second and thus chain together multiple
-functions. This results in more concice, readable code. When reading the convention is to pronounce %>% as 'then'.
+functions. This results in more concise, readable code. When reading the convention is to pronounce %>% as 'then'.
 
 1. *Rewrite the summary of the delayed flights (mean, standard deviation, etc.) from the previous section using pipes*
 
@@ -374,7 +374,7 @@ delayed_flights <- hflights %>%
             delay_sd = sd(DepDelay),
             n = n())  %>% 
   mutate(delay_se = delay_sd / sqrt(n),
-         ci = qt(1 - (0.05 / 2), n - 1) * delay_se)
+         moe = qt(1 - (0.05 / 2), n - 1) * delay_se)
 ```
 
 
@@ -383,7 +383,7 @@ delayed_flights <- hflights %>%
 ```{r}
   ggplot(delayed_flights, aes(Month, delay_mean)) +
     geom_bar(stat="identity") +
-    geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) 
+    geom_errorbar(aes(ymin = delay_mean - moe, ymax = delay_mean + moe)) 
 ```
 
 Note how here we have to use **stat="identity"** when calling **geom_bar()**. This hints at some of the underlying complexity in ggplot2. Briefly, most geoms also have some sort of transformation (or 'stat') associated with them to allow visualisation. **geom_bar()** actually has several but **stat="identity"** forces it to use the value you provide and not try to generate the total/average itself. While the use of **stat="identity"** is not the default I nevertheless find it is the most common.
