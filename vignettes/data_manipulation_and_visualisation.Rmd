@@ -326,7 +326,7 @@ delayed_flights
 
 2. *Can you then calculate the standard error and then a 95% margin of error (half a confidence interval)?*
 
-Note: Standard error (se) is $\frac{sd}{\sqrt{n}}$ and margin of error (moe) is $\frac{t-statistic}{se}$
+Note: Standard error (se) is $\frac{sd}{\sqrt{n}}$ and margin of error (moe) is $t-statistic \times se$
 
 The relevant t-statistic can be obtained from `qt(1 - (0.05 / 2), n - 1)`
 
