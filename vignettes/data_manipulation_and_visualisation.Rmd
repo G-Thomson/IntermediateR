@@ -400,11 +400,11 @@ hflights %>%
             delay_sd = sd(DepDelay),
             n = n())  %>% 
   mutate(delay_se = delay_sd / sqrt(n),
-         ci = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
+         moe = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
   
   ggplot(aes(DayOfWeek, delay_mean)) +
   geom_bar(stat="identity") +
-  geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) 
+  geom_errorbar(aes(ymin = delay_mean - moe, ymax = delay_mean + moe)) 
 ```
 
 - Group by Month and DayOfWeek
@@ -417,11 +417,11 @@ hflights %>%
             delay_sd = sd(DepDelay),
             n = n())  %>% 
   mutate(delay_se = delay_sd / sqrt(n),
-         ci = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
+         moe = qt(1 - (0.05 / 2), n - 1) * delay_se) %>% 
   
   ggplot(aes(DayOfWeek, delay_mean)) +
   geom_bar(stat="identity") +
-  geom_errorbar(aes(ymin = delay_mean - ci, ymax = delay_mean + ci)) +
+  geom_errorbar(aes(ymin = delay_mean - moe, ymax = delay_mean + moe)) +
   facet_grid(.~Month)
 ```
 
